@@ -8,7 +8,13 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
+extern NSString * const APLTextFieldTextDidChangeNotification;
+
 @interface APLTextField : UITextField
+
+@property (nonatomic, retain) UIPickerView* pickerView;
+@property (nonatomic, retain) UIColor*  pickerTextColor;
+@property (nonatomic, retain) UIColor*  pickerBackgroundColor;
 
 @property (nonatomic, strong) NSArray* pickerOptions;
 @property (nonatomic, copy) NSString* selectNonePickerOption;

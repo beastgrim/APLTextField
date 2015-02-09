@@ -7,18 +7,20 @@
 
 #import "APLTextField.h"
 
+NSString * const APLTextFieldTextDidChangeNotification = @"APLTextFieldTextDidChangeNotification";
 
 @interface APLTextField () <UIPickerViewDelegate, UIPickerViewDataSource>
 
 @property (nonatomic, assign) BOOL hasPicker;
 @property (nonatomic, strong) UIColor* normalTextColor;
-@property (nonatomic, retain) UIPickerView* pickerView;
 @property (nonatomic, retain) UIDatePicker* datePicker;
 
 @end
 
 
 @implementation APLTextField
+@synthesize pickerTextColor;
+@synthesize pickerBackgroundColor;
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -64,6 +66,14 @@
         self.pickerView.showsSelectionIndicator = YES;
         self.pickerView.delegate = self;
         self.pickerView.dataSource = self;
+        if (self.pickerBackgroundColor) {
+            self.pickerView.backgroundColor = self.pickerBackgroundColor;
+        }
+        if (self.pickerTextColor) {
+            [self.datePicker setValue:pickerTextColor forKeyPath:@"textColor"];
+        } else {
+            [self.datePicker setValue:[UIColor redColor] forKeyPath:@"textColor"];
+        }
     }
     self.inputView = self.pickerView;
     [self.pickerView reloadAllComponents];
@@ -98,6 +108,16 @@
         self.datePicker.datePickerMode = UIDatePickerModeDate;
         [self.datePicker addTarget:self action:@selector(dateChanged:) forControlEvents:UIControlEventValueChanged];
         self.inputView = self.datePicker;
+        
+        if (self.pickerBackgroundColor) {
+            self.datePicker.backgroundColor = self.pickerBackgroundColor;
+        }
+        
+        if (self.pickerTextColor) {
+            [self.datePicker setValue:pickerTextColor forKeyPath:@"textColor"];
+        } else {
+            [_datePicker setValue:[UIColor blackColor] forKeyPath:@"textColor"];
+        }
     }
 }
 
@@ -135,6 +155,24 @@
     return self.leftView && (self.leftViewMode != UITextFieldViewModeNever);
 }
 
+#pragma mark - Customize
+//-(void)setPickerBackgroundColor:(UIColor *)pickerBackgroundColor {
+////    self.pickerBackgroundColor = pickerBackgroundColor;
+//    if (self.datePicker) {
+//        self.datePicker.backgroundColor = self.pickerBackgroundColor;
+//    } else {
+//        self.pickerView.backgroundColor = self.pickerBackgroundColor;
+//    }
+//}
+//-(void)setPickerTextColor:(UIColor *)pickerTextColor {
+////    self.pickerTextColor = pickerTextColor;
+////    if (self.datePicker) {
+//        Log(@"setDatePickerTextColor %@", pickerTextColor);
+//        [self.datePicker setValue:[UIColor redColor] forKeyPath:@"textColor"];
+////    } else {
+//        [self.pickerView setValue:[UIColor redColor] forKeyPath:@"textColor"];
+////    }
+//}
 #pragma mark - overridden methods
 
 - (CGRect)textRectForBounds:(CGRect)bounds {
@@ -199,7 +237,8 @@
 
 - (void)drawPlaceholderInRect:(CGRect)rect {
     [[UIColor lightGrayColor] setFill];
-    [self.placeholder drawInRect:rect withFont:self.font];
+    //    [self.placeholder drawInRect:rect withFont:self.font];
+    [self.placeholder drawInRect:rect withAttributes:@{NSFontAttributeName: self.font}];
 }
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
@@ -212,11 +251,11 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    if ([self hasLeftView]) {
-        CGRect frame = self.leftView.frame;
-        frame.size = CGSizeMake(self.frame.size.height, self.frame.size.height);
-        self.leftView.frame = frame;
-    }
+    //    if ([self hasLeftView]) {
+    //        CGRect frame = self.leftView.frame;
+    //        frame.size = CGSizeMake(self.frame.size.height, self.frame.size.height);
+    //        self.leftView.frame = frame;
+    //    }
 }
 
 #pragma mark - text editing events
@@ -233,6 +272,7 @@
 
 - (void)dateChanged:(id)sender {
     self.text = [NSDateFormatter localizedStringFromDate:[self.datePicker date] dateStyle:NSDateFormatterMediumStyle timeStyle:NSDateFormatterNoStyle];
+    [[NSNotificationCenter defaultCenter] postNotificationName:APLTextFieldTextDidChangeNotification object:self];
 }
 
 #pragma mark - UIPickerViewDelegate
@@ -240,6 +280,31 @@
 - (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component {
     return row < [self.pickerOptions count] ? self.pickerOptions[row] : @"";
 }
+//- (NSAttributedString *)pickerView:(UIPickerView *)pickerView attributedTitleForRow:(NSInteger)row forComponent:(NSInteger)component {
+//    NSString *title = row < [self.pickerOptions count] ? self.pickerOptions[row] : @"";
+//    if (self.pickerTextColor == nil) {
+//        self.pickerTextColor = [UIColor blackColor];
+//    }
+//    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:self.pickerTextColor}];
+//
+//    return attString;
+//}
+//-(UIView *)pickerView:(UIPickerView *)pickerView viewForRow:(NSInteger)row forComponent:(NSInteger)component reusingView:(UIView *)view {
+//    // create attributed string
+//    NSString *title = row < [self.pickerOptions count] ? self.pickerOptions[row] : @""; if (!title) title = @"error";
+//    if (!pickerTextColor) {
+//        pickerTextColor = [UIColor blackColor];
+//    }
+//    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:[UIColor redColor]}];
+//
+//    // add the string to a label's attributedText property
+//    UILabel *labelView = [UILabel new];
+//    labelView.attributedText = attString;
+//    labelView.textAlignment = NSTextAlignmentCenter;
+//    labelView.font = [labelView.font fontWithSize:20];
+//
+//    return labelView;
+//}
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
     NSString* value = [self objectAtSafeIndex:row fromArray:self.pickerOptions];
@@ -251,6 +316,7 @@
         [self.delegate textField:self shouldChangeCharactersInRange:range replacementString:self.text];
     }
     self.selectedPickerOption = row;
+    [[NSNotificationCenter defaultCenter] postNotificationName:APLTextFieldTextDidChangeNotification object:self];
 }
 
 - (id)objectAtSafeIndex:(NSInteger)index fromArray:(NSArray*)array {
