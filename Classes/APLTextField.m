@@ -13,7 +13,6 @@ NSString * const APLTextFieldTextDidChangeNotification = @"APLTextFieldTextDidCh
 
 @property (nonatomic, assign) BOOL hasPicker;
 @property (nonatomic, strong) UIColor* normalTextColor;
-@property (nonatomic, retain) UIDatePicker* datePicker;
 
 @end
 

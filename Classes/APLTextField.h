@@ -13,6 +13,7 @@ extern NSString * const APLTextFieldTextDidChangeNotification;
 @interface APLTextField : UITextField
 
 @property (nonatomic, retain) UIPickerView* pickerView;
+@property (nonatomic, retain) UIDatePicker* datePicker;
 @property (nonatomic, retain) UIColor*  pickerTextColor;
 @property (nonatomic, retain) UIColor*  pickerBackgroundColor;
 
